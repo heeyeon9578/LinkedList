@@ -3,7 +3,13 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Content
+  - InputField
+  - clickButton
+  - observePanel
+  - printText
+  - inputFieldForIndex
   layers:
   - Default
   - TransparentFX

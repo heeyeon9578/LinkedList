@@ -1,176 +1,99 @@
+using System;
 using UnityEngine;
 using UnityEngine.UI;
 
-
 public class Manager : MonoBehaviour
 {
-    [Header("-----------------Node-------------------")]
-    public GameObject nodePrefab;
-    public Transform parentObj; // node prefab을 붙일 부모 오브젝트의 트랜스폼
+ 
+    GameObject nodePrefab;
+    Transform parentObj; // node prefab을 붙일 부모 오브젝트의 트랜스폼
+    Text inputField;
+    Text inputFieldForIndex;
+    GameObject observePanel;
+    Text printText;
+    LinkedList<string> list;
+    string data="";
+    string data2 = "";
+    int num = 0;
 
 
-    [Header("--------------InputField----------------")]
-    [SerializeField] private InputField createInputField;
-    [SerializeField] private InputField deleteInputField;
-    [SerializeField] private InputField searchInputField;
-
-
-    [Header("--------각 버튼 클릭 시 팝업 되는 창--------")]
-     public GameObject clickCreate;
-     public GameObject clickDelete;
-     public GameObject clickSearch;
-     public GameObject clickPrint;
-
-    [Header("-------------팝업 창의 확인 버튼--------------")]
-    public GameObject clickCreateOK;
-    public GameObject clickDeleteOK;
-    public GameObject clickSearchOK;
-    public GameObject clickPrintOK;
-
-    [Header("-------------확인 버튼 누른 후 팝업 창--------------")]
-    public GameObject clickCreate1;
-    public GameObject clickDelete1;
-    public GameObject clickSearch1;
-
-    [Header("--------확인 버튼 누른 후 팝업 창의 확인 버튼--------")]
-    public GameObject clickCreateOK1;
-    public GameObject clickDeleteOK1;
-    public GameObject clickSearchOK1;
-
-
-    [Header("--------확인 버튼 누른 후 팝업 창의 텍스트 ---------")]
-    public Text printText;
-    public Text deleteText;
-    public Text createText;
-    public Text searchText;
-
-
-
-    //Linked List -> 직렬화 불가능
-    public static LinkedList list;
 
     private void Awake()
     {
-        list = new LinkedList();
+        nodePrefab = Resources.Load<GameObject>("nodePrefab");
+        parentObj = GameObject.FindGameObjectWithTag("Content").transform;
+        inputField= GameObject.FindGameObjectWithTag("InputField").GetComponentInChildren<Text>();
+        inputFieldForIndex = GameObject.FindGameObjectWithTag("inputFieldForIndex").GetComponentInChildren<Text>();  
+        observePanel = GameObject.Find("Main").transform.Find("ObservePanel").gameObject;
+        printText = observePanel.GetComponentInChildren<Text>();     
+        list= new LinkedList<string>();    
     }
-    
-
-    //창을 닫기 위해 x 버튼을 누를 경우
-    public void clickX()
-    {
-        clickCreate.SetActive(false);
-        clickDelete.SetActive(false);
-        clickSearch.SetActive(false);
-        clickPrint.SetActive(false);
-    }
-
-    //팝업창 닫기
-    public void clickPanelX()
-    {
-        clickCreate1.SetActive(false);
-        clickDelete1.SetActive(false);
-        clickSearch1.SetActive(false);
-    }
-
 
     /// <summary>
-    /// 각 버튼(Create, Delete, Search, Print)를 누를 경우, 인풋 필드가 있는 '팝업 창'이 나오도록 하기
+    /// Button(확인)을 누를 경우
+    /// 1. input 데이터를 받아오기
+    /// 2. create, delete, search, print ? 
+    /// 3. 각 함수 실행
     /// </summary>
-    #region
-    //Create Button을 누를 경우
-    public void clickCreateButton()
+    /// 
+    public void ClickOK(int index)
     {
-        clickCreate.SetActive(true);
-    }
-    //Delete Button을 누를 경우
-    public void clickDeleteButton()
-    {
-        clickDelete.SetActive(true);
-    }
-    //Search Button을 누를 경우
-    public void clickSearchButton()
-    {
-        clickSearch.SetActive(true);
-    }
-    //Print Button을 누를 경우
-    public void clickPrintButton()
-    {
-        clickPrint.SetActive(true);
-    }
-    #endregion
-
-    /// <summary>
-    /// 각 인풋 필드에 값을 입력 후 팝업 창을 닫고 작업 실행하기
-    /// </summary>
-    #region
-    //Create 하고 확인Button을 누를 경우
-    public void clickCreateOKButton()
-    {
-        string newData = createInputField.text;
-        if(newData == null)
-        {
-            createText.text = newData + "입력되지 않았습니다!!!";
-            return;
+        data = inputField.text;
+        if(index == 0) { //삽입
+            list.Insert(data);
         }
-        //링크드 리스트에 추가하기
-        list.InsertNode(newData);
-        //노드 생성하기
-        GameObject obj =  Instantiate(nodePrefab, parentObj);
-        //입력받은 텍스트를 노드의 텍스트에 작성
-        Text newText = obj.GetComponentInChildren<Text>();
-        newText.text = newData;
-        createText.text = newData+" 입력을 성공했습니다!(^3^)";
-        Debug.Log(newData + "가 입력되었습니다! ");
-        //인풋필드 초기화
-        createInputField.text = "";
-        clickCreate.SetActive(false);
-        clickCreate1.SetActive(true);
-        list.Print();
-        printText.text = LinkedList.forPrintText;
-
-    }
-
-    //Delete 하고 확인Button을 누를 경우
-    public void clickDeleteOKButton()
-    {
-        string newData = deleteInputField.text;
-        //링크드 리스트에서 삭제하기
-        list.DeleteNode(newData);
-        //노드 제거하기
-        int numOfChild = parentObj.childCount;
-        for(int i=0; i<numOfChild; i++)
-        {
-            if(parentObj.GetChild(i).gameObject.transform.GetComponentInChildren<Text>().text == newData)
+        else if(index == 1) {  //삭제
+            list.Delete(data);
+        }
+        else if(index == 2) { //인덱스로 삭제
+            data2 = inputFieldForIndex.text;
+            num = int.Parse(data2);
+            list.DeleteIndex(num);       
+        }
+        else if(index == 3) { //전체 삭제
+            list.DeleteAll();
+        }
+        else if(index == 4) { //탐색
+            if (list.Search(x => x == data) != null)
             {
-                Destroy(parentObj.GetChild(i).gameObject);
-                break;
+                printText.text = data + "가 존재합니다!";
+                observePanel.SetActive(true);
+            }
+            else
+            {
+                printText.text = data + "가 존재하지 않습니다!";
+                observePanel.SetActive(true);
             }
         }
-             
-        clickDelete.SetActive(false);
-        clickDelete1.SetActive(true);
-        deleteText.text = LinkedList.forDeleteText;
-        deleteInputField.text = "";
-        list.Print();
-        printText.text = LinkedList.forPrintText;
+        else if(index == 5) { //출력
+            printText.text = list.PrintIndex();
+            observePanel.SetActive(true);
+        }
 
+        RefreshNodes();
     }
-    //Search 하고 확인Button을 누를 경우
-    public void clickSearchOKButton()
+
+    //노드 재배치
+    public void RefreshNodes()
     {
-        string newData = searchInputField.text;
-        list.SearchNode(newData);
-        clickSearch.SetActive(false);
-        clickSearch1.SetActive(true);
-        searchText.text = LinkedList.forSearchText;
-        searchInputField.text = "";
+        for(int i=0; i< parentObj.childCount; i++)
+        {
+            Destroy(parentObj.GetChild(i).gameObject);      
+        }
+        int numOfChild = list.Count();       
+        for (int i = 0; i < numOfChild; i++)
+        {
+            GameObject obj = Instantiate(nodePrefab, parentObj);
+            string str = list.SearchIndex(i).ToString();
+            Text temp = obj.GetComponentInChildren<Text>();
+            temp.text = str;
+        }
     }
-    //Print 하고 확인Button을 누를 경우
-    public void clickPrintOKButton()
+
+    //Button(Observe 패널의 확인)을 누를 경우
+    public void ClickOK2()
     {
-             
-        clickPrint.SetActive(false);
+        observePanel.SetActive(false);
     }
-    #endregion
 
 }

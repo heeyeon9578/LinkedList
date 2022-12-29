@@ -1,133 +1,174 @@
 using System;
-using UnityEngine;
-public class LinkedList
+/// <summary>
+/// 단순 연결 리스트 구현해보기
+/// 2022.12.21 ~ 2022.12.26
+/// Author: 최희연
+/// </summary>
+/// <typeparam name="T"></typeparam>
+/// 
+public class Node<T>
 {
-    public static bool has;
-    public static bool has2;
-    public static string forDeleteText;
-    public static string forSearchText;
-    public static string forPrintText;
+    public T data;
+    public Node<T> next;
 
-
-    Node head; //첫 번째 노드를 가리키는 head
-    
-    //노드 추가하기
-    public void InsertNode(string data)
+    public Node(T data)
     {
-        Node node = new Node(data);
-        if(head == null)
+        this.data = data;
+        next = null;
+    }
+
+}
+public class LinkedList<T>
+{
+
+    Node<T> head;
+    Node<T> tail;
+    int count = 0;
+
+    /// <summary>
+    /// 값으로 추가, 삭제, 탐색, 출력 하기
+    /// </summary>
+    /// <param name="data"></param>
+    //노드 추가하기 기능
+    public void Insert(T data)
+    {
+        Node<T> node = new Node<T>(data);
+        if (head == null)
         {
             head = node;
-            
         }
         else
         {
-            Node lastNode = GetLastNode();
+            Node<T> lastNode = GetLastNode();
             lastNode.next = node;
+            tail = node;
         }
-        
-        Debug.Log(data + "가 링크드 리스트에 추가되었습니다~~~~~");
+
+        count++;
 
     }
-    //마지막 노드 가져오기
-    public Node GetLastNode()
-    {
-        Node temp = head;
-        while(temp.next != null)
-        {
-            temp = temp.next;
-        }
-        return temp;
-    }
-
     //노드 삭제하기 
-    //하나 전의 노드의 주소를 저장하여 삭제할 노드를 찾았을 때, 
-    //하나 전 노드의 next 포인터를 삭제할 노드의 next 포인터의 값으로 바꾼 후 노드를 제거합니다.
-    public void DeleteNode(string data)
+    public bool Delete(T data)
     {
-   
-        Node temp = head;
-        Node prev = null; 
-        has= false;
-        forDeleteText = "";
-        //data가 없을 경우
-        if (temp==null)
-        {
-            forDeleteText = "데이터가 존재하지 않습니다!";
-            Debug.Log("데이터가 존재하지 않습니다!");
-            return;
-        }
-        //head data일 경우
-        if (head.data == data)
-        {
-            head = head.next;
-            forDeleteText = data + "가 링크드 리스트에서 삭제되었습니다^3^";
-            Debug.Log(data + "가 링크드 리스트에서 삭제되었습니다^3^");
-            return;
-        }
+        Node<T> prev = null;
+        Node<T> cur = head;
 
-        for (Node node = head; node != null; node = node.next)
-        {
-            
-            prev = temp;
-            temp = temp.next;
+        if (cur == null)
+            return false;
 
-            if (temp != head && temp.data == data)
+        while (cur != null)
+        {
+            if (cur.data.Equals(data))
             {
-                
-                prev.next = temp.next;
-                has = true;
-                forDeleteText = data + "가 링크드 리스트에서 삭제되었습니다^3^";
-                Debug.Log(data + "가 링크드 리스트에서 삭제되었습니다^3^");
-                return;
+                if (prev == null)
+                {
+                    head = head.next;
+                }
+                else if (cur.next == null)
+                {
+                    prev.next = cur.next;
+                    tail = prev;
+                }
+                else
+                {
+                    prev.next = cur.next;
+                }
+                count--;
+                return true;
             }
+            prev = cur;
+            cur = cur.next;
         }
-
-        if (has == false)
-        {
-            forDeleteText = "값이 존재하지 않습니다!";
-            Debug.Log("값이 존재하지 않습니다!");
-        }
-
-
+        return false;
     }
-
-    //노드 탐색하기
-    public void SearchNode(string data)
+    //노드 전체 삭제하기 
+    public void DeleteAll()
     {
-        int count = 0;
-        has2 = false;
-        forSearchText = "";
-        for (Node node = head; node != null; node = node.next)
+        head = null;
+        tail = null;
+        count = 0;
+    }
+    //노드 탐색하기 -> 조건이 주어졌을 때, 알맞은 값 맨 앞에 있는 하나만 반환하기
+    public T Search(Predicate<T> data)
+    {
+        for (Node<T> node = head; node != null; node = node.next)
         {
-            count++;
-            if(node.data == data)
+            if (data(node.data))
+                return node.data;
+        }
+        return default(T);
+    }
+    //노드 탐색하기 (인덱스)
+    public T SearchIndex(int index)
+    {
+        int num = 0;
+        for (Node<T> node = head; node != null; node = node.next)
+        {
+            if (index == num)
+                return node.data;
+            else
+                num++;
+        }
+        return default(T);
+    }
+    //마지막 노드(tail) 가져오기
+    public Node<T> GetLastNode()
+    {
+        if (tail == null)
+            return head;
+        return tail;
+    }
+    //리스트 개수 구하기
+    public int Count()
+    {
+        return count;
+    }
+    //노드 삭제하기 (인덱스)
+    public bool DeleteIndex(int index)
+    {
+        Node<T> prev = null;
+        Node<T> cur = head;
+        int num = 0;
+
+        if (cur == null)
+            return false;
+
+        while (cur != null)
+        {
+            if (num == index)
             {
-                forSearchText = count + "번 째에 있습니다!";
-                has2 = true;
-                break;
-            }         
+                if (prev == null)
+                {
+                    head = head.next;
+                }
+                else if (cur.next == null)
+                {
+                    prev.next = cur.next;
+                    tail = prev;
+                }
+                else
+                {
+                    prev.next = cur.next;
+                }
+                count--;
+                return true;
+            }
+            prev = cur;
+            cur = cur.next;
+            num++;
         }
-        if (has2==false)
-        {
-            forSearchText="존재하지 않습니다!";
-        }
-        
+        return false;
     }
-
-    //노드 출력하기
-    public void Print()
+    //전체 노드 출력
+    public string PrintIndex()
     {
-        forPrintText = "";
-        int count=0;
-        for (Node node = head; node != null; node = node.next)
+        string str = "";
+        int num = 0;
+        for (Node<T> node = head; node != null; node = node.next)
         {
-
-            forPrintText += node.data + " -> ";
-            count++;
+            str += "{ index= " + num + "   data= " + node.data + " }  ->  ";
+            num++;
         }
-
-        forPrintText += '\n';
-        forPrintText += "총 개수: " +count;
+        return str;
     }
 }
